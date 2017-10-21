@@ -6,7 +6,6 @@ import tkinter.messagebox
 # validation to ensure start and end node are connected ie a-b = 3   c-d = 4 ..select a-d is crash
 # additional admin features to be added
 # prevent all admins being deleted
-# option to enusre u want to remove befoew removing
 # Some repeated code
 
 
