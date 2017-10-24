@@ -6,16 +6,16 @@ class Dijkstra:  # Class for Dijkstra's algorithm
 
     def __init__(self):
         self.nodes = {} # holds user graph
-        self.visited_nodes = {}
-        self.distance_node = {}
-        self.start = None
-        self.end = None
-        self.shortest_path = []
+        self.visited_nodes = {}  # holds all visited nodes
+        self.distance_node = {}  # hold distance to nodes (visited nodes)
+        self.start = None  # start node
+        self.end = None  # end node
+        self.shortest_path = [] # nodes in shortest path
 
     # Method sets up distances initially to all nodes
     # Undiscovered nodes are set to maxint so they can be updated when
     # a shorter path is found.
-    def setup_distances(self, distance_node):
+    def setup_distances(self):
         for node in self.nodes:
             if node == self.start:
                 self.distance_node[node] = 0
@@ -31,19 +31,19 @@ class Dijkstra:  # Class for Dijkstra's algorithm
 
             # If alt path is of shorter value that the path already exisiting , update values with new one.
             if alt_path_value < self.distance_node[neighbour]:
-                self.distance_node[neighbour] = alt_path_value
-                self.visited_nodes[neighbour] = pq_key
-                if alt_path_value < pq_dict[neighbour]:
+                self.distance_node[neighbour] = alt_path_value  # new shortest distance to neighbour node is alt path
+                self.visited_nodes[neighbour] = pq_key  # neighbour node has been visited
+                if alt_path_value < pq_dict[neighbour]:  # make changes to priority queue for new shorter length path
                     pq_dict[neighbour] = alt_path_value
 
-    def calculate_shortest_path(self):  # Method to work out shortest path
+    def create_path(self):  # Method to work out shortest path
         route_node = self.end
         found_start_node = False  # bool to check if start node has been found
 
         while not found_start_node:  # Tracing back from end node until start node found
             if self.visited_nodes[route_node] == self.start:
-                self.shortest_path.append(route_node)
-                self.shortest_path.append(self.visited_nodes[route_node])
+                self.shortest_path.append(route_node)  # adds penultimate node to sp
+                self.shortest_path.append(self.visited_nodes[route_node])   # adds first node (start node)
                 found_start_node = True
             else:
                 self.shortest_path.append(route_node)
@@ -54,7 +54,7 @@ class Dijkstra:  # Class for Dijkstra's algorithm
 
         import Priorityqueue as PQ # Priority queue module imported
 
-        self.setup_distances(self.distance_node)  # calling member method
+        self.setup_distances()  # calling member method
 
         pq = PQ.PriorityQueue()  # Priority queue class called using composition
 
@@ -69,5 +69,5 @@ class Dijkstra:  # Class for Dijkstra's algorithm
                 break
 
             if pq_key == self.end:  # If end node has been found algorithm can end as shortest path to it was found
-                self.calculate_shortest_path()
+                self.create_path()
                 break
