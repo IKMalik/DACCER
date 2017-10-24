@@ -2,7 +2,7 @@ class Matrix:  # Class that creates adjacency matrix for displaying graph.
 
     def __init__(self):
         self.graph = {}  # graph to be displayed
-        self.matrix = []  # Matrix that wil contain the adjacency matrix
+        self.matrix = []  # list that will contain the adjacency matrix
 
     def create_matrix(self):
         keys = sorted(self.graph.keys())  # ordering of keys in graph for use in matrix table
@@ -24,13 +24,13 @@ class Matrix:  # Class that creates adjacency matrix for displaying graph.
 
         display_matrix = [map("{:^7}".format, line) for line in self.matrix] # map applies formatting every list in -
                                                                              # matrix
-                                                                             # ^5 is spacing between elements
+                                                                             # ^7 is spacing between elements
 
         start = "(["  # opening part of string
         end = "])"  # last part of string
 
-        lines = ["[{}]".format(" ".join(array)) for array in display_matrix]
+        lines = ["[{}]".format(" ".join(array)) for array in display_matrix] # joins the formatted graph
         line_prefix = ",\n" + " " * len(start)
         data = line_prefix.join(lines)
 
-        return start + data + end
+        return start + data + end  # return the matrix
