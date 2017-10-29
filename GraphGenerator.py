@@ -37,5 +37,3 @@ class ComplexGraph(AbstractGraph):  # class for graph that inherits from base cl
                     distance = rnd.randint(1, 100)  # if not exists , set it up both ways as a-b = b-a
                     self.graph[key][neighbour] = distance
                     self.graph[neighbour][key] = distance
-
-
