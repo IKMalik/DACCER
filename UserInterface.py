@@ -1,13 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox
 
-#----------BUG LIST------#
-# validation to ensure empty graph cannot be added
-# validation to ensure start and end node are connected ie a-b = 3   c-d = 4 ..select a-d is crash
-# additional admin features to be added
-# prevent all admins being deleted
-# Some repeated code
-
 
 class SetupFrames(tk.Frame): # Class initialises all frames in application
 
@@ -22,7 +15,6 @@ class SetupFrames(tk.Frame): # Class initialises all frames in application
             frame.grid(row=0, column=0, sticky="nsew")
             self.frames[new_frame] = frame
         self.change_frame(LogInFrame)  # Display Mainframe
-
 
     def change_frame(self, frame):   # Method to change between frames when called
         self.frames[frame].tkraise()
@@ -49,11 +41,9 @@ class LogInFrame(tk.Frame):  # first frame shown when application run
         self.entry_user.grid(row=0, column=1)  # Positions of entries on frame using
         self.entry_pass.grid(row=1, column=1)
 
-        self.button_checkinputs_user = tk.Button(self, text="Log in User", command=self.check_valid_user)
-        self.button_checkinputs_admin = tk.Button(self, text="Log in Admin", command=self.check_valid_admin)
+        self.button_checkinputs_user = tk.Button(self, text="Press to log in", command=self.check_valid_user)
 
         self.button_checkinputs_user.grid(row=3, column=5) # Positioning buttons on frame
-        self.button_checkinputs_admin.grid(row=3, column=7)  # Positioning buttons on frame
 
     def check_valid_user(self):  # Method validate userinput
 
@@ -63,13 +53,14 @@ class LogInFrame(tk.Frame):  # first frame shown when application run
         username = username.strip()  # Remove any whitespace before/after entry
         password = password.strip()
 
+
         if (len(username)) == 0 or (len(password) == 0):
             tk.messagebox.showinfo("title", "Invalid username or password entered, please try again or register")
 
         else:
 
             # Validity checked from Method within database (method returns user if valid user or admin if valid admin)
-            is_valid = self.database.check_user_login(username, password)
+            is_valid = self.database.check_login(username, password)
 
             if is_valid == "user":  # if valid user
                 tk.messagebox.showinfo("title", "You are logged in")
@@ -77,28 +68,13 @@ class LogInFrame(tk.Frame):  # first frame shown when application run
                 self.database.conn.close()
                 self.master.change_frame(EnterGraphFrame)
 
-            else:  # If incorrect user must re-enter.
-                tk.messagebox.showinfo('Invalid input', 'Password or username not found in records')
-
-    def check_valid_admin(self):  # Method validate userinput
-        username = self.entry_user.get()  # User input is fetched
-        password = self.entry_pass.get()
-
-        username = username.strip()  # Remove any whitespace before/after entry
-        password = password.strip()
-
-        if (len(username)) == 0 or (len(password) == 0):  # if no data entered
-            tk.messagebox.showinfo("title", "Invalid username or password entered, please try again or register")
-
-        else:
-            # Validity checked from Method within database (method returns user if valid user or admin if valid admin)
-            is_valid = self.database.check_admin_login(username, password)
-
-            if is_valid == "admin":  # if admin is logging in
-                    tk.messagebox.showinfo('Admin', 'You have logged in as admin')
-                    self.database.c.close()  # close connections to db if user log in
-                    self.database.conn.close()
-                    self.master.change_frame(AdminPageFrame)  # Change frame to admin one
+            elif is_valid == 'admin':
+                tk.messagebox.showinfo('Admin', 'You have logged in as admin')
+                self.database.c.close()  # close connections to db if user log in
+                self.database.conn.close()
+                self.master.change_frame(AdminPageFrame) # Change frame to admin one
+                tk.messagebox.showinfo("note to admins", "If you wish to add another admin leave assigned adminid entry "
+                                       "blank, otherwise add to it an exisitng adminid for the new user.")
 
             else:  # If incorrect user must re-enter.
                 tk.messagebox.showinfo('Invalid input', 'Password or username not found in records')
@@ -109,81 +85,146 @@ class AdminPageFrame(tk.Frame):  # Admin class
     def __init__(self, parent):
         tk.Frame.__init__(self, parent)
 
-        self.login_user = ''  # variable that stores the username from entry
-        self.login_pass = ''  # variable that stores password from entry
+        self.new_user = ''  # variable that stores the username from entry
+        self.new_pass = ''  # variable that stores password from entry
+        self.login_adminid = '' # variable to hold adminid (if entered)
+        self.login_adminname = ''  # varuabke to hold admin name (if entered)
 
         self.label_title_add = tk.Label(self, text ="ADD/REMOVE USER")  # title for adding user
-        self.label_newuser = tk.Label(self, text="Enter new userid: ")  # label for new userid
-        self.label_pass = tk.Label(self, text="Enter userid password: ")  # label for userid password
+        self.label_newuser = tk.Label(self, text="Enter new id: ")  # label for new userid
+        self.label_pass = tk.Label(self, text="Enter id password: ")  # label for userid password
+        self.label_adminname = tk.Label(self, text="Enter name of admin (if admin): ") # name of admin if admin
+        self.label_addadminid = tk.Label(self, text="Enter assigned admin id (if user)")  #label for adding admin to userid
+        self.label_viewusers = tk.Label(self, text="VIEW USERS AND ASSIGNED ADMINS")
 
         self.label_title_add.grid(row=0, sticky=tk.NSEW)
         self.label_newuser.grid(row=1, sticky=tk.NSEW)  # Labels placed on frame
         self.label_pass.grid(row=2, sticky=tk.NSEW)
+        self.label_adminname.grid(row=3, sticky=tk.NSEW)
+        self.label_addadminid.grid(row=4, sticky=tk.NSEW)
+        self.label_viewusers.grid(row=7, sticky=tk.NSEW)
 
         self.entry_newuser = tk.Entry(self)  # Entries for user input
         self.entry_pass = tk.Entry(self, show="*")  # hide characters for password entry
+        self.entry_getname = tk.Entry(self)  # entry for admin name
+        self.entry_getid = tk.Entry(self)  # get adminid for the new userid (if user being added)
 
         self.entry_newuser.grid(row=1, column=2)  # Positions of entries on frame using
         self.entry_pass.grid(row=2, column=2)
+        self.entry_getname.grid(row=3, column=2)
+        self.entry_getid.grid(row=4, column=2)
 
         self.button_removeuser = tk.Button(self, text='Remove user', command = self.remove_user)
-        self.button_adduser = tk.Button(self, text="Register user", command=self.add_user)  #user log in button
+        self.button_adduser = tk.Button(self, text="Register user", command=self.add_user)
+        self.button_view_users = tk.Button(self, text="View system details", command=self.view_users)
 
-        self.button_removeuser.grid(row=2, column=10)
-        self.button_adduser.grid(row=2, column=7)  # Positioning buttons on frame
+        self.button_removeuser.grid(row=4, column=10) # Positioning buttons on frame
+        self.button_adduser.grid(row=4, column=7)
+        self.button_view_users.grid(row=9)
 
-    def remove_user(self):
-        check_valid = self.get_info()
+    def get_info(self):
+        self.new_user = self.entry_newuser.get()  # User input is fetched and assigned
+        self.new_pass = self.entry_pass.get()  # user input for password fetched and assigned
+        self.login_adminname = self.entry_getname.get()  # user input for admin name fetched
+        self.login_adminid = self.entry_getid.get()  # admin id fetched
 
-        if check_valid:
-            import Database as db  # importing my database module
+    def remove_user(self): # Method to remove user which can be user or admin
+        self.get_info()  # fetch data from entries
 
-            self.database = db.Database()
+        import Database as db  # importing my database module
 
-            invalid = self.database.check_newuser(self.login_user)
+        self.database = db.Database()
+        isadminid = self.database.check_adminid(self.new_user)  # check if Id was admins
 
-            if not invalid:
-                self.database.remove_user(self.login_user)
-                tk.messagebox.showinfo('Removed', 'User/admin has been removed')
+        if isadminid:  # Id was admins
+            self.database.remove_admin(self.new_user)
+            tk.messagebox.showinfo('Removed', 'Admin and associated users have been removed')
+
+        else:
+            notuserid = self.database.check_newuser(self.new_user)
+
+            if not notuserid:  # if no invalid userid was found then admin must wish to remove userid
+                self.database.remove_user(self.new_user)
+                tk.messagebox.showinfo('Removed', 'User has been removed')
 
             else:
                 tk.messagebox.showinfo('Invalid user/admin selected', 'Userid/adminid could not be found in records')
-        else:
-            pass
 
-    def get_info(self):
-        self.login_user = self.entry_newuser.get()  # User input is fetched and assigned
-        self.login_pass = self.entry_pass.get()  # user input for password fetched and assigned
+    def validate_info(self):
+        import Database as db  # importing my database module
+        self.database = db.Database()  # creating connections to database
+        self.get_info()  #collect entry information and store in initalised variables
 
-        if (len(self.login_pass)) == 0 or (len(self.login_user) == 0):  # if no data entered
+        x = self.database.check_adminid(self.login_adminid)
+
+        if (len(self.new_pass)) == 0 or (len(self.new_user) == 0):  # if no data entered
             tk.messagebox.showinfo("title", "One or more required fields was left blank")
-            return False
+            return False  # invalid data entry
+
+        elif (len(self.login_adminid) != 0) and (len(self.login_adminname) != 0):
+            return False  # invalid data entry
+
+        elif (len(self.login_adminid) == 0) and (len(self.login_adminname) == 0):
+            return False  # invalid data entry
+
+        elif x:  # if valid adminid added then user must want to add new person as user
+            self.new_pass = self.new_pass.strip()  # Remove any whitespace before/after entry
+            self.new_user = self.new_user.strip()
+            self.login_adminid = self.login_adminid.strip()
+            return 'user'
+
+        elif (not x) and (len(self.login_adminid) == 0) and (len(self.login_adminname) != 0):
+            # no adminid was given and an admin name was given so must be admin being entered
+            self.new_pass = self.new_pass.strip()  # Remove any whitespace before/after entry
+            self.new_user = self.new_user.strip()
+            return 'admin'
+
         else:
-            self.login_pass = self.login_pass.strip()  # Remove any whitespace before/after entry
-            self.login_user = self.login_user.strip()
-            return True
+            return False  # invalid data entry
 
-    def add_user(self):
-        check_valid = self.get_info()
+    def add_user(self):  # Method to add users to system
+        check_valid = self.validate_info() # check for valid data entry and type (admin/user)
 
-        if check_valid:
+        if check_valid == 'user' or check_valid == 'admin':
             import Database as db # importing my database module
 
             self.database = db.Database() # creating connections to database
 
-            valid = self.database.check_newuser(self.login_user)  # check if valid user is being added
+            valid = self.database.check_newuser(self.new_user)  # check if valid user is being added
 
             if valid:
-                self.database.enter_data(self.login_user, self.login_pass)  # add user data
-                tk.messagebox.showinfo("Added", "New user has been added")
-                self.database.c.close()  # close connections to db if user log in
-                self.database.conn.close()
+                if check_valid == 'admin':
+                    self.database.enter_newadmin(self.new_user, self.login_adminname, self.new_pass)  # add admin data
+                    self.database.c.close()  # close connections to db if user log in
+                    self.database.conn.close()
+                else:
+                    self.database.enter_newuser(self.new_user, self.new_pass, self.login_adminid)  # add user data
+                    self.database.c.close()  # close connections to db if user log in
+                    self.database.conn.close()
 
             else:  # user data is invalid
                 tk.messagebox.showinfo('Invalid input', 'Userid already exists please create another id')
 
         else:
-            pass
+            tk.messagebox.showinfo('Invalid input', 'Please check data was entered correctly')
+
+    def view_users(self):  # Method to view users in system
+        import Database as db  # importing my database module
+        self.database = db.Database()  # creating connections to database
+        tk.messagebox.showinfo('Users with assigned admins', self.database.get_joins())
+        self.get_counts()
+        self.get_mostfrequser()
+
+    def get_counts(self): # Method to get sum of system users
+        import Database as db  # importing my database module
+        self.database = db.Database()  # creating connections to database
+        tk.messagebox.showinfo("Total number of users in system including admins",
+                               list(self.database.get_numusers())[0] + list(self.database.get_numadmins())[0])
+
+    def get_mostfrequser(self): # Method get user with most logins
+        import Database as db  # importing my database module
+        self.database = db.Database()  # creating connections to database
+        self.database.getmostlogin()
 
 class RandomGraphFrame(tk.Frame):  # Class for random graph generation
 
@@ -196,16 +237,15 @@ class RandomGraphFrame(tk.Frame):  # Class for random graph generation
 
     def setup_complex(self):
         import GraphGenerator as graphgen  # importing my random graph generator module
-        complex = graphgen.ComplexGraph()  # compositon used to access random graph class
-        complex.setup_nodes()  # complex graph being set up
-        complex.setup_neighbours()
-        self.display_data(complex.graph)
+        random_graph = graphgen.ComplexGraph()  # compositon used to access random graph class
+        random_graph.setup_nodes()  # random graph being set up
+        random_graph.setup_neighbours()
+        self.display_data(random_graph.graph)
 
     def display_data(self, graph):
         import AdjancencyMatrix as amatrix
         display_graph = amatrix.Matrix()
         display_graph.graph = graph
-        #matrix_graph = display_graph.create_matrix()
         tk.messagebox.showinfo('Adjacency Matrix for graph', display_graph.create_matrix())  # Complex graph displayed
         self.master.frames[EnterGraphFrame].graph_nodes = graph  # set graph in application to the random graph
         self.master.change_frame(AlgorithmFrame) # change frame to frame with alogrithm
@@ -289,9 +329,13 @@ class EnterGraphFrame(tk.Frame):  # Frame where user graph is collected
 
     def graph_entered(self):  # Method changes frame to DisplayAlgorithm Frame
 
-        tk.messagebox.showinfo("Completed graph", '{}'.format(self.graph_nodes))  # display completed graph
-        self.master.change_frame(AlgorithmFrame)  # change frame
-        self.button_graphdone.grid_forget()  # Hide button
+        if len(self.graph_nodes) > 2:
+            tk.messagebox.showinfo("Completed graph", '{}'.format(self.graph_nodes))  # display completed graph
+            print(self.graph_nodes)
+            self.master.change_frame(AlgorithmFrame)  # change frame
+            self.button_graphdone.grid_forget()  # Hide button
+        else:
+            tk.messagebox.showerror('Graph Invalid', 'Please ensure it has at least two unique nodes')  # catch graph error
 
     def validate_nodes(self):  # Method to validate user inputs
 
@@ -370,7 +414,7 @@ class AlgorithmFrame(tk.Frame):  # Frame to display results of algorithm
         if (self.entry_start.get() not in self.graph.nodes.keys()) or \
                 (self.entry_end.get() not in self.graph.nodes.keys()):    # if invalid
 
-            tk.messagebox.showinfo("Please enter a valid start/end node")
+            tk.messagebox.showerror("Invalid start/end node","Please enter a valid start/end node")
             self.entry_start.delete(0, 'end')  # clear start node entry
             self.entry_end.delete(0, 'end')  # clear end node entry
 
