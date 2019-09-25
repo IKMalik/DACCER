@@ -1,4 +1,4 @@
-# Shortest Path Toolkit
+# DACCER
 
 An educational toolkit designed to provide a fast and efficent way to find solutions to the shortest path problem. 
 
